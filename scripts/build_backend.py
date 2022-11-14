@@ -116,10 +116,10 @@ def custom_build_cmake_clib(iface, cxx=None):
     python_library_dir = win_python_path_lib if IS_WIN else get_config_var('LIBDIR')
     numpy_include = np.get_include()
 
-    eca = ''
+    eca = None
     if iface == 'dpc':
         cxx = 'icpx'
-        eca += '-fsycl '
+        eca = '-fsycl'
     elif cxx is None:
         raise RuntimeError('CXX compiler shall be specified')
 
@@ -129,7 +129,6 @@ def custom_build_cmake_clib(iface, cxx=None):
         "-S" + builder_directory,
         "-B" + abs_build_temp_path,
         "-DCMAKE_CXX_COMPILER=" + cxx,
-        "-DCMAKE_CXX_FLAGS=" + eca,
         "-DCMAKE_INSTALL_PREFIX=" + install_directory,
         "-DCMAKE_PREFIX_PATH=" + install_directory,
         "-DIFACE=" + iface,
@@ -140,6 +139,8 @@ def custom_build_cmake_clib(iface, cxx=None):
         "-DoneDAL_LIBRARY_DIR=" + jp(os.environ['DALROOT'], 'lib', 'intel64'),
         "-Dpybind11_DIR=" + pybind11.get_cmake_dir(),
     ]
+    if eca is not None:
+        cmake_args.append("-DCMAKE_CXX_FLAGS=" + eca)
 
     import multiprocessing
     cpu_count = multiprocessing.cpu_count()
