@@ -23,7 +23,7 @@ from sklearn.linear_model._coordinate_descent import ElasticNet as ElasticNet_or
 from sklearn.linear_model._coordinate_descent import Lasso as Lasso_original
 from daal4py.sklearn._utils import (
     make2d, getFPType, get_patch_message, sklearn_check_version, PatchingConditionsChain)
-if sklearn_check_version('1.0') and not sklearn_check_version('1.4'):
+if sklearn_check_version('1.0') and not sklearn_check_version('1.2'):
     from sklearn.linear_model._base import _deprecate_normalize
 
 import logging
@@ -456,11 +456,6 @@ def _fit(self, X, y, sample_weight=None, check_input=True):
         self._normalize = _deprecate_normalize(
             self.normalize,
             default=False,
-            estimator_name=class_name
-        )
-    elif sklearn_check_version('1.2') and not sklearn_check_version('1.4'):
-        self._normalize = _deprecate_normalize(
-            self.normalize,
             estimator_name=class_name
         )
 

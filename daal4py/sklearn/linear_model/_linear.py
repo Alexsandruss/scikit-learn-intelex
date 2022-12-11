@@ -24,7 +24,7 @@ from .._device_offload import support_usm_ndarray
 from sklearn.utils import check_array
 
 from sklearn.linear_model import LinearRegression as LinearRegression_original
-if sklearn_check_version('1.0') and not sklearn_check_version('1.4'):
+if sklearn_check_version('1.0') and not sklearn_check_version('1.2'):
     from sklearn.linear_model._base import _deprecate_normalize
 
 try:
@@ -293,11 +293,6 @@ class LinearRegression(LinearRegression_original):
             self._normalize = _deprecate_normalize(
                 self.normalize,
                 default=False,
-                estimator_name=self.__class__.__name__,
-            )
-        elif sklearn_check_version('1.2') and not sklearn_check_version('1.4'):
-            self._normalize = _deprecate_normalize(
-                self.normalize,
                 estimator_name=self.__class__.__name__,
             )
         if sklearn_check_version('1.0'):
