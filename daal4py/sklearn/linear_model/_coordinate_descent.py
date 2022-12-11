@@ -563,20 +563,22 @@ class ElasticNet(ElasticNet_original):
         random_state=None,
         selection='cyclic',
     ):
-        super(ElasticNet, self).__init__(
-            alpha=alpha,
-            l1_ratio=l1_ratio,
-            fit_intercept=fit_intercept,
-            normalize=normalize,
-            precompute=precompute,
-            max_iter=max_iter,
-            copy_X=copy_X,
-            tol=tol,
-            warm_start=warm_start,
-            positive=positive,
-            random_state=random_state,
-            selection=selection,
-        )
+        super_params = {
+            "alpha": alpha,
+            "l1_ratio": l1_ratio,
+            "fit_intercept": fit_intercept,
+            "precompute": precompute,
+            "max_iter": max_iter,
+            "copy_X": copy_X,
+            "tol": tol,
+            "warm_start": warm_start,
+            "positive": positive,
+            "random_state": random_state,
+            "selection": selection,
+        }
+        if not sklearn_check_version('1.2'):
+            super_params["normalize"] = normalize
+        super(ElasticNet, self).__init__(**super_params)
 
     if sklearn_check_version('0.23'):
         @support_usm_ndarray()
@@ -719,19 +721,21 @@ class Lasso(Lasso_original):
         selection='cyclic',
     ):
         self.l1_ratio = 1.0
-        super().__init__(
-            alpha=alpha,
-            fit_intercept=fit_intercept,
-            normalize=normalize,
-            precompute=precompute,
-            copy_X=copy_X,
-            max_iter=max_iter,
-            tol=tol,
-            warm_start=warm_start,
-            positive=positive,
-            random_state=random_state,
-            selection=selection,
-        )
+        super_params = {
+            "alpha": alpha,
+            "fit_intercept": fit_intercept,
+            "precompute": precompute,
+            "copy_X": copy_X,
+            "max_iter": max_iter,
+            "tol": tol,
+            "warm_start": warm_start,
+            "positive": positive,
+            "random_state": random_state,
+            "selection": selection,
+        }
+        if not sklearn_check_version('1.2'):
+            super_params["normalize"] = normalize
+        super().__init__(**super_params)
 
     if sklearn_check_version('0.23'):
         @support_usm_ndarray()
