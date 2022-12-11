@@ -242,13 +242,15 @@ class LinearRegression(LinearRegression_original):
             n_jobs=None,
             positive=False,
         ):
-            super(LinearRegression, self).__init__(
-                fit_intercept=fit_intercept,
-                normalize=normalize,
-                copy_X=copy_X,
-                n_jobs=n_jobs,
-                positive=positive,
-            )
+            super_params = {
+                "fit_intercept": fit_intercept,
+                "copy_X": copy_X,
+                "n_jobs": n_jobs,
+                "positive": positive,
+            }
+            if not sklearn_check_version('1.2'):
+                super_params["normalize"] = normalize
+            super(LinearRegression, self).__init__(**super_params)
     else:
         def __init__(
             self,
@@ -257,14 +259,12 @@ class LinearRegression(LinearRegression_original):
             copy_X=True,
             n_jobs=None,
         ):
-            super_params = {
-                "fit_intercept": fit_intercept,
-                "copy_X": copy_X,
-                "n_jobs": n_jobs
-            }
-            if not sklearn_check_version('1.2'):
-                super_params["normalize"] = normalize
-            super(LinearRegression, self).__init__(**super_params)
+            super(LinearRegression, self).__init__(
+                fit_intercept=fit_intercept,
+                normalize=normalize,
+                copy_X=copy_X,
+                n_jobs=n_jobs
+            )
 
     @support_usm_ndarray()
     def fit(self, X, y, sample_weight=None):
