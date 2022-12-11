@@ -96,7 +96,10 @@ def _daal4py_fit_enet(self, X, y_, check_input):
     else:
         y_offset = np.zeros(y.shape[1], dtype=X.dtype)
 
-    _normalize = self._normalize if sklearn_check_version('1.0') else self.normalize
+    if sklearn_check_version('1.2'):
+        _normalize = False
+    else:
+        _normalize = self._normalize if sklearn_check_version('1.0') else self.normalize
     if self.fit_intercept:
         X_offset = np.average(X, axis=0)
         if _normalize:
@@ -251,7 +254,10 @@ def _daal4py_fit_lasso(self, X, y_, check_input):
     else:
         y_offset = np.zeros(y.shape[1], dtype=X.dtype)
 
-    _normalize = self._normalize if sklearn_check_version('1.0') else self.normalize
+    if sklearn_check_version('1.2'):
+        _normalize = False
+    else:
+        _normalize = self._normalize if sklearn_check_version('1.0') else self.normalize
     if self.fit_intercept:
         X_offset = np.average(X, axis=0)
         if _normalize:
