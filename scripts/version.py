@@ -25,7 +25,7 @@ def get_onedal_version(dal_root):
     header_version = jp(dal_root, 'include', 'services', 'library_version_info.h')
     version = ""
 
-    major, minnor = "", ""
+    major, minor, major_binary, minor_binary = "", "", "", ""
     with open(header_version, 'r') as header:
         for elem in header:
             if '#define __INTEL_DAAL__' in elem:
@@ -36,6 +36,16 @@ def get_onedal_version(dal_root):
             if '#define __INTEL_DAAL_MINOR__' in elem:
                 match = re.match(r'#define __INTEL_DAAL_MINOR__ (\d+)', elem)
                 if match:
-                    minnor = match.group(1)
-    version = int(major) * 10000 + int(minnor) * 100
-    return version
+                    minor = match.group(1)
+            if '#define __INTEL_DAAL_MAJOR_BINARY__' in elem:
+                match = re.match(r'#define __INTEL_DAAL_MAJOR_BINARY__ (\d+)', elem)
+                if match:
+                    major_binary = match.group(1)
+
+            if '#define __INTEL_DAAL_MINOR_BINARY__' in elem:
+                match = re.match(r'#define __INTEL_DAAL_MINOR_BINARY__ (\d+)', elem)
+                if match:
+                    minor_binary = match.group(1)
+    version = int(major) * 10000 + int(minor) * 100
+    binary_version = int(major_binary), int(minor_binary)
+    return version, binary_version
