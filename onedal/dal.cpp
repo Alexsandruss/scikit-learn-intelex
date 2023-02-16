@@ -28,12 +28,15 @@ ONEDAL_PY_INIT_MODULE(policy);
 ONEDAL_PY_INIT_MODULE(table);
 
 /* primitives */
+ONEDAL_PY_INIT_MODULE(get_tree);
+
 ONEDAL_PY_INIT_MODULE(linear_kernel);
 ONEDAL_PY_INIT_MODULE(rbf_kernel);
 ONEDAL_PY_INIT_MODULE(polynomial_kernel);
 ONEDAL_PY_INIT_MODULE(sigmoid_kernel);
 
 /* algorithms */
+ONEDAL_PY_INIT_MODULE(ensemble);
 #if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20230100
 ONEDAL_PY_INIT_MODULE(linear_model);
 #endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20230100
@@ -52,11 +55,12 @@ PYBIND11_MODULE(_onedal_py_host, m) {
     init_rbf_kernel(m);
     init_polynomial_kernel(m);
     init_sigmoid_kernel(m);
+    init_get_tree(m);
 
+    init_ensemble(m);
 #if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20230100
     init_linear_model(m);
 #endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20230100
-
     init_neighbors(m);
     init_svm(m);
 }
