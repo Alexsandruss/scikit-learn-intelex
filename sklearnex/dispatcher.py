@@ -39,6 +39,7 @@ def get_patch_map():
         from ._config import get_config as get_config_sklearnex
         from ._config import config_context as config_context_sklearnex
 
+        from .decomposition import PCA as PCA_sklearnex
         from .ensemble import RandomForestClassifier as RandomForestClassifier_sklearnex
         from .ensemble import RandomForestRegressor as RandomForestRegressor_sklearnex
 
@@ -57,6 +58,7 @@ def get_patch_map():
 
         import sklearn as base_module
         import sklearn.ensemble as ensemble_module
+        import sklearn.decomposition as decomposition_module
         import sklearn.svm as svm_module
         import sklearn.neighbors as neighbors_module
         import sklearn.linear_model as linear_model_module
@@ -78,6 +80,9 @@ def get_patch_map():
                                                  None]]
         mapping['randomrorestclassifier'] = mapping['random_forest_classifier']
         mapping['randomforestregressor'] = mapping['random_forest_regressor']
+        # decomposition
+        mapping.pop('pca')
+        mapping['pca'] = [[(decomposition_module, 'PCA', PCA_sklearnex), None]]
 
         # SVM
         mapping.pop('svm')
