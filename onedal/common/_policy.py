@@ -14,8 +14,10 @@
 # limitations under the License.
 # ==============================================================================
 
+import os
 import sys
 
+from daal4py.sklearn._utils import daal_check_version
 from onedal import _backend, _is_dpc_backend
 
 oneapi_is_available = "daal4py.oneapi" in sys.modules
@@ -23,6 +25,32 @@ if oneapi_is_available:
     from daal4py.oneapi import _get_sycl_ctxt, sycl_execution_context
 
 
+if daal_check_version((2024, "P", 1)):
+
+    def set_threading_policy(function):
+        def wrapper(queue, *data):
+            policy = function(queue, *data)
+            params = {
+                "thread_pinning": bool(int(os.getenv("ONEDAL_TP", 0))),
+                "max_concurrency": int(os.getenv("ONEDAL_NT", 0)),
+                "max_threads_per_core": int(os.getenv("ONEDAL_HT", 0)),
+            }
+            policy.set_threading_parameters(
+                params["thread_pinning"],
+                params["max_concurrency"],
+                params["max_threads_per_core"],
+            )
+            return policy
+
+        return wrapper
+
+else:
+
+    def set_threading_policy(function):
+        return function
+
+
+@set_threading_policy
 def _get_policy(queue, *data):
     data_queue = _get_queue(*data)
     if _is_dpc_backend:

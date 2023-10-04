@@ -14,6 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
+#include "onedal/version.hpp"
 #include "oneapi/dal/detail/policy.hpp"
 #include "onedal/common/pybind11_helpers.hpp"
 
@@ -26,7 +27,17 @@ ONEDAL_PY_INIT_MODULE(policy) {
         .def(py::init())
         .def("get_device_name", [](const detail::host_policy& self) {
             return "cpu";
-        });
+        })
+#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
+        .def("set_threading_parameters", [](detail::host_policy& self, bool thread_pinning = false, int max_concurrency = 0, int max_threads_per_core = 0) {
+            auto threading_policy = self.get_threading_policy();
+            threading_policy.thread_pinning = thread_pinning;
+            threading_policy.max_concurrency = max_concurrency;
+            threading_policy.max_threads_per_core = max_threads_per_core;
+            self.set_threading_policy(threading_policy);
+        })
+#endif
+        ;
 
 #ifdef ONEDAL_DATA_PARALLEL
     py::class_<detail::data_parallel_policy>(m, "data_parallel_policy")
@@ -45,7 +56,17 @@ ONEDAL_PY_INIT_MODULE(policy) {
                 return "cpu";
             }
             return "unknown";
-        });
+        })
+#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
+        .def("set_threading_parameters", [](detail::data_parallel_policy& self, bool thread_pinning = false, int max_concurrency = 0, int max_threads_per_core = 0) {
+            auto threading_policy = self.get_threading_policy();
+            threading_policy.thread_pinning = thread_pinning;
+            threading_policy.max_concurrency = max_concurrency;
+            threading_policy.max_threads_per_core = max_threads_per_core;
+            self.set_threading_policy(threading_policy);
+        })
+#endif
+        ;
 #endif
 }
 
