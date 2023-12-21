@@ -52,7 +52,7 @@ struct params2desc {
 
 template <typename Policy, typename Task>
 void init_compute_ops(py::module_& m) {
-#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
     using compute_hyperparams_t = dal::covariance::detail::compute_parameters<Task>;
     m.def("compute", [](
         const Policy& policy,
@@ -67,7 +67,7 @@ void init_compute_ops(py::module_& m) {
             return fptype2t{ method2t{ Task{}, ops } }(params);
         }
     );
-#endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+#endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
     m.def("compute", [](
         const Policy& policy,
         const py::dict& params,
@@ -90,7 +90,7 @@ inline void init_compute_result(py::module_& m) {
         .def_property("means", &result_t::get_means, &result_t::set_means);
 }
 
-#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
 
 template <typename Task>
 void init_compute_hyperparameters(py::module_& m) {
@@ -107,13 +107,13 @@ void init_compute_hyperparameters(py::module_& m) {
                    });
 }
 
-#endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+#endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
 
 ONEDAL_PY_DECLARE_INSTANTIATOR(init_compute_result);
 ONEDAL_PY_DECLARE_INSTANTIATOR(init_compute_ops);
-#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+#if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
     ONEDAL_PY_DECLARE_INSTANTIATOR(init_compute_hyperparameters);
-#endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+#endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
 } //namespace covariance
 
 ONEDAL_PY_INIT_MODULE(covariance) {
@@ -124,13 +124,13 @@ ONEDAL_PY_INIT_MODULE(covariance) {
     auto sub = m.def_submodule("covariance");
     #ifdef ONEDAL_DATA_PARALLEL_SPMD
         ONEDAL_PY_INSTANTIATE(init_compute_ops, sub, policy_list_spmd, task::compute);
-    #else    
+    #else
         ONEDAL_PY_INSTANTIATE(init_compute_ops, sub, policy_list, task::compute);
     #endif
     ONEDAL_PY_INSTANTIATE(init_compute_result, sub, task::compute);
-    #if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+    #if defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
         ONEDAL_PY_INSTANTIATE(init_compute_hyperparameters, sub, task::compute);
-    #endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240000
+    #endif // defined(ONEDAL_VERSION) && ONEDAL_VERSION >= 20240001
 }
 
 } // namespace oneapi::dal::python
