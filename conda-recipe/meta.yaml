@@ -45,7 +45,7 @@ build:
 requirements:
   build:
     - make  # [linux]
-    - dpcpp_linux-64  # [linux64]
+    - dpcpp_linux-64 ==2024  # [linux64]
     # - dpcpp_win-64  # [win]
     - {{ compiler('cxx') }}  # [linux64 or win]
     # conda-forge feedstock specific
@@ -61,14 +61,14 @@ requirements:
     - numpy {{ numpy }}
     - impi-devel  # [not win]
     # dal-devel pinning depends on the recipe location (repo or feedstock)
-    - dal-devel
+    - dal-devel ==2024
     # - dal-devel =={{ version }}
   run:
     - python
     - {{ pin_compatible('numpy') }}
-    - dpcpp-cpp-rt  # [linux64]
+    - dpcpp-cpp-rt ==2024  # [linux64]
     # dal pinning depends on the recipe location (repo or feedstock)
-    - dal
+    - dal ==2024
     # - dal =={{ version }}
 
 test:
