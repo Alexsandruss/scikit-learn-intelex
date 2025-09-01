@@ -96,10 +96,6 @@ def set_config(
     will raise an error.
     """
 
-    array_api_dispatch = sklearn_configs.get("array_api_dispatch", False)
-    if array_api_dispatch and sklearn_check_version("1.6"):
-        environ["SCIPY_ARRAY_API"] = "1"
-
     skl_set_config(**sklearn_configs)
 
     local_config = onedal_get_config(copy=False)
