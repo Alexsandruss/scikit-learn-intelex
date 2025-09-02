@@ -62,24 +62,41 @@ function generate_pytest_args {
 
 PYTEST_VERBOSITY_ARGS=$(cat "${sklex_root}/.pytest-verbosity-args")
 
+# Run patch_sklearn first as it's a dependency
 ${PYTHON} -c "from sklearnex import patch_sklearn; patch_sklearn()"
 return_code=$(($return_code + $?))
 
-pytest ${PYTEST_VERBOSITY_ARGS} -s "${sklex_root}/tests" $@ $(generate_pytest_args legacy)
-return_code=$(($return_code + $?))
+# Create a temporary directory for output files
+tmp_dir=$(mktemp -d)
+pids=()
+output_files=()
+return_code_files=()
 
-pytest ${PYTEST_VERBOSITY_ARGS} --pyargs daal4py $@ $(generate_pytest_args daal4py)
-return_code=$(($return_code + $?))
+# Function to run a command in background and capture its output and return code
+run_in_background() {
+    local name=$1
+    local cmd=$2
+    local output_file="${tmp_dir}/${name}.out"
+    local rc_file="${tmp_dir}/${name}.rc"
+    output_files+=("$output_file")
+    return_code_files+=("$rc_file")
+    
+    # Display which test is starting
+    echo "Starting test: $name"
+    
+    # Run the command, capture output and return code
+    (eval "$cmd" > "$output_file" 2>&1; echo $? > "$rc_file") &
+    pids+=($!)
+}
 
-pytest ${PYTEST_VERBOSITY_ARGS} --pyargs sklearnex $@ $(generate_pytest_args sklearnex)
-return_code=$(($return_code + $?))
+# Run all pytest commands in parallel
+run_in_background "legacy" "pytest ${PYTEST_VERBOSITY_ARGS} -s \"${sklex_root}/tests\" $@ $(generate_pytest_args legacy)"
+run_in_background "daal4py" "pytest ${PYTEST_VERBOSITY_ARGS} --pyargs daal4py $@ $(generate_pytest_args daal4py)"
+run_in_background "sklearnex" "pytest ${PYTEST_VERBOSITY_ARGS} --pyargs sklearnex $@ $(generate_pytest_args sklearnex)"
+run_in_background "onedal" "pytest ${PYTEST_VERBOSITY_ARGS} --pyargs onedal $@ $(generate_pytest_args onedal)"
+run_in_background "global_patching" "pytest ${PYTEST_VERBOSITY_ARGS} -s \"${sklex_root}/.ci/scripts/test_global_patch.py\" $@ $(generate_pytest_args global_patching)"
 
-pytest ${PYTEST_VERBOSITY_ARGS} --pyargs onedal $@ $(generate_pytest_args onedal)
-return_code=$(($return_code + $?))
-
-pytest ${PYTEST_VERBOSITY_ARGS} -s "${sklex_root}/.ci/scripts/test_global_patch.py" $@ $(generate_pytest_args global_patching)
-return_code=$(($return_code + $?))
-
+# Handle MPI tests
 echo "NO_DIST=$NO_DIST"
 if [[ ! $NO_DIST ]]; then
     mpirun --version
@@ -91,13 +108,38 @@ if [[ ! $NO_DIST ]]; then
     else
         export EXTRA_MPI_ARGS="-n 4"
     fi
-    mpirun ${EXTRA_MPI_ARGS} python "${sklex_root}/tests/helper_mpi_tests.py" \
-        pytest -k spmd --with-mpi ${PYTEST_VERBOSITY_ARGS} --pyargs sklearnex $@ $(generate_pytest_args sklearnex_spmd)
-    return_code=$(($return_code + $?))
-    mpirun ${EXTRA_MPI_ARGS} python "${sklex_root}/tests/helper_mpi_tests.py" \
-        pytest ${PYTEST_VERBOSITY_ARGS} -s "${sklex_root}/tests/test_daal4py_spmd_examples.py" $@ $(generate_pytest_args mpi_legacy)
-    return_code=$(($return_code + $?))
+    
+    run_in_background "sklearnex_spmd" "mpirun ${EXTRA_MPI_ARGS} python \"${sklex_root}/tests/helper_mpi_tests.py\" pytest -k spmd --with-mpi ${PYTEST_VERBOSITY_ARGS} --pyargs sklearnex $@ $(generate_pytest_args sklearnex_spmd)"
+    run_in_background "mpi_legacy" "mpirun ${EXTRA_MPI_ARGS} python \"${sklex_root}/tests/helper_mpi_tests.py\" pytest ${PYTEST_VERBOSITY_ARGS} -s \"${sklex_root}/tests/test_daal4py_spmd_examples.py\" $@ $(generate_pytest_args mpi_legacy)"
 fi
+
+# Wait for all background processes to complete
+echo "Waiting for all tests to complete..."
+for pid in "${pids[@]}"; do
+    wait $pid
+done
+
+# Print output from each test sequentially and collect return codes
+for i in "${!output_files[@]}"; do
+    test_name=$(basename "${output_files[$i]}" .out)
+    echo "=================================================="
+    echo "Output from $test_name:"
+    echo "=================================================="
+    cat "${output_files[$i]}"
+    echo ""
+    
+    # Add return code to the total
+    if [[ -f "${return_code_files[$i]}" ]]; then
+        rc=$(cat "${return_code_files[$i]}")
+        echo "Return code for $test_name: $rc"
+        return_code=$(($return_code + $rc))
+    else
+        echo "Warning: No return code file found for $test_name"
+    fi
+done
+
+# Clean up temporary files
+rm -rf "$tmp_dir"
 
 if [[ "$*" == *"--json-report"* ]] && ! [ -f .pytest_reports/legacy_report.json ]; then
     echo "Error: JSON report files failed to be produced."
